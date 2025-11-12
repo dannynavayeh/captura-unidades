@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Captura de Unidades — Catálogo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-zinc-50 text-zinc-900">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="flex items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">Captura de Unidades</h1>
+        <p class="text-sm text-zinc-600">Sube el CSV de productos sin unidad y selecciona la unidad de venta por producto. Tus cambios se guardan en este navegador.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnExport" class="px-3 py-2 rounded-xl bg-black text-white shadow hover:opacity-90">Exportar mapeo (.csv)</button>
+      </div>
+    </header>
+
+    <section class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="rounded-2xl border bg-white p-4">
+        <h2 class="font-semibold mb-2">1) Cargar archivo</h2>
+        <input id="fileInput" type="file" accept=".csv" class="block w-full text-sm" />
+        <p class="text-xs text-zinc-500 mt-2">Tip: usa <code>productos_sin_unidad.csv</code> que te generé.</p>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <h2 class="font-semibold mb-2">2) Filtros</h2>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input id="search" type="text" placeholder="Buscar por clave o descripción" class="flex-1 border rounded-xl px-3 py-2" />
+          <select id="filterUnit" class="border rounded-xl px-3 py-2">
+            <option value="">Todas las unidades</option>
+          </select>
+          <button id="btnClear" class="px-3 py-2 rounded-xl border">Limpiar filtros</button>
+        </div>
+        <p class="text-xs text-zinc-500 mt-2">Atajo: escribe y presiona Enter para buscar.</p>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border bg-white">
+      <div class="p-4 flex items-center justify-between">
+        <h2 class="font-semibold">3) Asignación por producto</h2>
+        <span id="progress" class="text-sm text-zinc-600">0 asignados</span>
+      </div>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-zinc-100 sticky top-0">
+            <tr>
+              <th class="text-left font-medium px-3 py-2">Clave</th>
+              <th class="text-left font-medium px-3 py-2">Descripción</th>
+              <th class="text-left font-medium px-3 py-2">Existencias</th>
+              <th class="text-left font-medium px-3 py-2">Línea</th>
+              <th class="text-left font-medium px-3 py-2">Unidad de venta</th>
+              <th class="text-left font-medium px-3 py-2">Comentarios</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="text-xs text-zinc-500 mt-6">
+      <p>Los datos se guardan en <strong>localStorage</strong>. Al exportar, obtendrás un CSV con columnas: <code>Clave,UnidadVenta,Comentarios</code>.</p>
+    </footer>
+  </div>
+
+  <script>
+    const UNITS = [
+      "BULTO", "BOTE", "CUBETA", "LITRO", "GALON", "METRO", "M2", "M3", "PIEZA",
+      "SACO", "KG", "TONELADA", "PAQUETE"
+    ];
+
+    const STORAGE_KEY = "captura_unidades_v1";
+    let rows = [];            // filas cargadas desde el CSV
+    let assignments = {};     // { Clave: { UnidadVenta, Comentarios } }
+
+    // Util
+    const $ = (sel) => document.querySelector(sel);
+    const create = (tag, cls) => { const el = document.createElement(tag); if(cls) el.className = cls; return el; };
+
+    // Cargar progreso previo
+    function loadState(){
+      try { assignments = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+      catch { assignments = {}; }
+    }
+
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
+    }
+
+    function updateProgress(){
+      const assigned = Object.values(assignments).filter(a => a && a.UnidadVenta && a.UnidadVenta.length).length;
+      $("#progress").textContent = `${assigned} asignados / ${rows.length} productos`;
+    }
+
+    function buildUnitSelect(value){
+      const sel = create("select", "border rounded-xl px-2 py-1 bg-white");
+      const opt0 = create("option"); opt0.value = ""; opt0.textContent = "Seleccionar"; sel.appendChild(opt0);
+      UNITS.forEach(u => { const o = create("option"); o.value = u; o.textContent = u; sel.appendChild(o); });
+      if(value) sel.value = value;
+      return sel;
+    }
+
+    function populateFilterUnit(){
+      const filter = $("#filterUnit");
+      UNITS.forEach(u => { const o = create("option"); o.value = u; o.textContent = u; filter.appendChild(o); });
+    }
+
+    function renderTable(){
+      const tbody = $("#tbody");
+      tbody.innerHTML = "";
+      const q = $("#search").value.trim().toLowerCase();
+      const fUnit = $("#filterUnit").value;
+
+      const filtered = rows.filter(r => {
+        const matchQ = q ? (String(r.Clave || "").toLowerCase().includes(q) || String(r.Descripción || "").toLowerCase().includes(q)) : true;
+        const currUnit = (assignments[r.Clave]?.UnidadVenta) || "";
+        const matchUnit = fUnit ? (currUnit === fUnit) : true;
+        return matchQ && matchUnit;
+      });
+
+      filtered.forEach(r => {
+        const tr = create("tr", "border-t");
+
+        const tdClave = create("td", "px-3 py-2 font-medium"); tdClave.textContent = r.Clave || ""; tr.appendChild(tdClave);
+        const tdDesc  = create("td", "px-3 py-2"); tdDesc.textContent = r.Descripción || ""; tr.appendChild(tdDesc);
+        const tdEx    = create("td", "px-3 py-2 text-right tabular-nums"); tdEx.textContent = r.Existencias ?? ""; tr.appendChild(tdEx);
+        const tdLin   = create("td", "px-3 py-2 text-right"); tdLin.textContent = r.Línea ?? ""; tr.appendChild(tdLin);
+
+        const tdUnit  = create("td", "px-3 py-2");
+        const sel = buildUnitSelect(assignments[r.Clave]?.UnidadVenta || "");
+        sel.addEventListener("change", () => { 
+          assignments[r.Clave] = assignments[r.Clave] || {}; 
+          assignments[r.Clave].UnidadVenta = sel.value; 
+          saveState(); 
+          updateProgress();
+        });
+        tdUnit.appendChild(sel);
+        tr.appendChild(tdUnit);
+
+        const tdCom = create("td", "px-3 py-2");
+        const inp = create("input", "border rounded-xl px-2 py-1 w-full");
+        inp.placeholder = "Opcional";
+        inp.value = assignments[r.Clave]?.Comentarios || "";
+        inp.addEventListener("input", () => {
+          assignments[r.Clave] = assignments[r.Clave] || {};
+          assignments[r.Clave].Comentarios = inp.value;
+          saveState();
+        });
+        tdCom.appendChild(inp);
+        tr.appendChild(tdCom);
+
+        tbody.appendChild(tr);
+      });
+
+      updateProgress();
+    }
+
+    function handleCSV(file){
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => {
+          rows = res.data.map(r => ({
+            Clave: r["Clave"],
+            Descripción: r["Descripción"],
+            Existencias: r["Existencias"],
+            Línea: r["Línea"],
+          }));
+          renderTable();
+        }
+      });
+    }
+
+    function exportCSV(){
+      const lines = ["Clave,UnidadVenta,Comentarios"]; 
+      rows.forEach(r => {
+        const a = assignments[r.Clave] || {};
+        const unidad = a.UnidadVenta ? a.UnidadVenta : "";
+        const com = (a.Comentarios || "").replaceAll('"', '""');
+        const csvCom = `"${com}"`;
+        lines.push(`${r.Clave || ""},${unidad},${csvCom}`);
+      });
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "mapeo_unidades.csv"; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Events
+    window.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      populateFilterUnit();
+      $("#fileInput").addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if(file) handleCSV(file);
+      });
+      $("#btnExport").addEventListener("click", exportCSV);
+      $("#btnClear").addEventListener("click", () => { $("#search").value = ""; $("#filterUnit").value = ""; renderTable(); });
+      $("#search").addEventListener("keydown", (e) => { if(e.key === "Enter") renderTable(); });
+      $("#filterUnit").addEventListener("change", renderTable);
+    });
+  </script>
+</body>
+</html>
