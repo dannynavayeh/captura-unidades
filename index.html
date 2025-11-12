@@ -12,7 +12,9 @@
     <header class="flex items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-bold">Captura de Unidades</h1>
-        <p class="text-sm text-zinc-600">Sube el CSV de productos sin unidad y selecciona la unidad de venta por producto. Tus cambios se guardan en este navegador.</p>
+        <p class="text-sm text-zinc-600">
+          Catálogo embebido. Selecciona o escribe la unidad de venta por producto. Se guarda en este navegador.
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <button id="btnExport" class="px-3 py-2 rounded-xl bg-black text-white shadow hover:opacity-90">Exportar mapeo (.csv)</button>
@@ -21,9 +23,9 @@
 
     <section class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="rounded-2xl border bg-white p-4">
-        <h2 class="font-semibold mb-2">1) Cargar archivo</h2>
+        <h2 class="font-semibold mb-2">1) Cargar archivo (opcional)</h2>
         <input id="fileInput" type="file" accept=".csv" class="block w-full text-sm" />
-        <p class="text-xs text-zinc-500 mt-2">Tip: usa <code>productos_sin_unidad.csv</code> que te generé.</p>
+        <p class="text-xs text-zinc-500 mt-2">Opcional: si subes un CSV, reemplaza el catálogo embebido.</p>
       </div>
 
       <div class="rounded-2xl border bg-white p-4">
@@ -35,7 +37,6 @@
           </select>
           <button id="btnClear" class="px-3 py-2 rounded-xl border">Limpiar filtros</button>
         </div>
-        <p class="text-xs text-zinc-500 mt-2">Atajo: escribe y presiona Enter para buscar.</p>
       </div>
     </section>
 
@@ -53,6 +54,7 @@
               <th class="text-left font-medium px-3 py-2">Existencias</th>
               <th class="text-left font-medium px-3 py-2">Línea</th>
               <th class="text-left font-medium px-3 py-2">Unidad de venta</th>
+              <th class="text-left font-medium px-3 py-2">Otra unidad</th>
               <th class="text-left font-medium px-3 py-2">Comentarios</th>
             </tr>
           </thead>
@@ -62,41 +64,36 @@
     </section>
 
     <footer class="text-xs text-zinc-500 mt-6">
-      <p>Los datos se guardan en <strong>localStorage</strong>. Al exportar, obtendrás un CSV con columnas: <code>Clave,UnidadVenta,Comentarios</code>.</p>
+      <p>Guardado local en <strong>localStorage</strong>. Exporta un CSV con columnas: <code>Clave,UnidadVenta,OtraUnidad,Comentarios</code>.</p>
     </footer>
   </div>
 
   <script>
+    // Catálogo embebido (productos)
+    const EMBED_ROWS = [{"Clave":"APLACE","Descripción":"APLANADO CEMIX","Existencias":"2.00","Línea":NaN},{"Clave":"ARENALT","Descripción":"ARENA LIGERA TORTON","Existencias":"917.00","Línea":NaN},{"Clave":"ARX1010","Descripción":"ARMEX DE 10 X 10","Existencias":"89.00","Línea":1.0},{"Clave":"ARX1015","Descripción":"ARMEX DE 10 X 15","Existencias":"21.00","Línea":1.0},{"Clave":"ARX1020","Descripción":"ARMEX DE 10 X 20","Existencias":"180.70","Línea":1.0},{"Clave":"ARX1025","Descripción":"ARMEX DE 10 X 25","Existencias":"133.00","Línea":1.0},{"Clave":"BLKGLG","Descripción":"BLOCK LIGERO 18 x 38","Existencias":"299,597.00","Línea":1.0},{"Clave":"BLKLC","Descripción":"BLOCK LIGERO 20 x 40","Existencias":"40,938.00","Línea":1.0},{"Clave":"BLKLG","Descripción":"BLOCK PESADO 18 x 38","Existencias":"999,950,287.00","Línea":1.0},{"Clave":"BLKLGP","Descripción":"BLOCK PESADO 20 x 40","Existencias":"2,703.00","Línea":1.0},{"Clave":"BLKRC","Descripción":"BLOCK COLOR","Existencias":"1,220.00","Línea":1.0},{"Clave":"BLOCKHL","Descripción":"BLOCK HUECO LIGERO 152040","Existencias":"74,107.00","Línea":NaN},{"Clave":"BLOCKHP","Descripción":"BLOCK HUECO PESADO 152040","Existencias":"17,016.00","Línea":NaN},{"Clave":"BLST","Descripción":"BALASTRE","Existencias":"0.00","Línea":4.0},{"Clave":"BOQBLT","Descripción":"BOQUILLA CHOCOLATE","Existencias":"8.00","Línea":1.0},{"Clave":"BOQM","Descripción":"BOQUILLA MADISON","Existencias":"18.00","Línea":NaN},{"Clave":"BOQUI","Descripción":"BOQUILLA BLANCO","Existencias":"0.00","Línea":NaN},{"Clave":"BOQUIG","Descripción":"BOQUILLA GRIS","Existencias":"0.00","Línea":NaN},{"Clave":"BOQUIH","Descripción":"BOQUILLA COLOR HUESO","Existencias":"0.00","Línea":NaN},{"Clave":"BOQUIN","Descripción":"BOQUILLA NEGRA","Existencias":"0.00","Línea":NaN},{"Clave":"BOQUIR","Descripción":"BOQUILLA ROJO LADRILLO","Existencias":"0.00","Línea":NaN},{"Clave":"CAJAL","Descripción":"CAJA DE REGISTRO LUZ","Existencias":"22.00","Línea":NaN},{"Clave":"CAL1K","Descripción":"CAL POR KILO","Existencias":"3,646.75","Línea":1.0},{"Clave":"CARTON","Descripción":"ROLLO DE CARTON ASFALTICO","Existencias":"4.00","Línea":NaN},{"Clave":"CBAL","Descripción":"BALASTRE","Existencias":"756.00","Línea":NaN},{"Clave":"CCEM","Descripción":"CAJA DE COLOR PARA CEMENTO","Existencias":"42.00","Línea":1.0},{"Clave":"CDC","Descripción":"CARRO DE CASCAJO","Existencias":"10,688,297.65","Línea":4.0},{"Clave":"CEMB1K","Descripción":"CEMENTO BLANCO POR KILO","Existencias":"794.37","Línea":1.0},{"Clave":"CEMG1K","Descripción":"CEMENTO GRIS POR KILO","Existencias":"234,983,284.95","Línea":1.0},{"Clave":"CEMGA","Descripción":"CEMENTO GRIS 50KG CA","Existencias":"110.25","Línea":NaN},{"Clave":"CEROFK","Descripción":"CERO FINO POR KILO","Existencias":"4,618.00","Línea":1.0},{"Clave":"CG-233","Descripción":"REDUCCION 1X3/4","Existencias":"0.00","Línea":NaN},{"Clave":"CHAL","Descripción":"CHALUPAS","Existencias":"60.00","Línea":NaN},{"Clave":"CIMS","Descripción":"CEMENTO IMPERCEM","Existencias":"5.00","Línea":2.0},{"Clave":"CL11/2K","Descripción":"CLAVO 1 1/2 PULGADAS KILO","Existencias":"426.48","Línea":3.0},{"Clave":"CL21/2PK","Descripción":"CLAVO DE 2 1/2 PULGADAS POR KILO","Existencias":"201.99","Línea":3.0},{"Clave":"CL2PK","Descripción":"CLAVO DE 2 PULGADAS POR KILO","Existencias":"995.49","Línea":3.0},{"Clave":"CL31/2PK","Descripción":"CLAVO DE 3 1/2 PULGADAS KILO","Existencias":"459.50","Línea":3.0},{"Clave":"CL3PK","Descripción":"CLAVO DE 3 PULGADAS POR KILO","Existencias":"4,796.14","Línea":3.0},{"Clave":"CL4PK","Descripción":"CLAVO DE 4 PULGADAS KILO","Existencias":"326.49","Línea":3.0},{"Clave":"CLACHAFLN","Descripción":"CLAVO PARA CHAFLAN","Existencias":"511.07","Línea":NaN},{"Clave":"CLC 1 1/2 P","Descripción":"CLAVO DE 1 1/2 PARA CONCRETO","Existencias":"0.00","Línea":3.0},{"Clave":"CLC 4\"","Descripción":"CLAVO DE 4 PULGADAS PARA CONCRETO","Existencias":"4,943.55","Línea":3.0},{"Clave":"CLC21/2P","Descripción":"CLAVO PARA CONCRETO 2 1/2 PULGADAS","Existencias":"292.29","Línea":3.0},{"Clave":"CLC2P","Descripción":"CLAVO PARA CONCRETO 2 PULGADAS","Existencias":"88.27","Línea":3.0},{"Clave":"CLC3P","Descripción":"CLAVO PARA CONCRETO 3 PULGADAS","Existencias":"438.87","Línea":3.0},{"Clave":"CM50KTL","Descripción":"CEMENTO TOLTECA","Existencias":"0.00","Línea":2.0},{"Clave":"CODO","Descripción":"CODO PVC","Existencias":"41.00","Línea":NaN},{"Clave":"COLADERA","Descripción":"COLADERA 20 X 20","Existencias":"0.00","Línea":NaN},{"Clave":"COPLES1''","Descripción":"COPLES 1´´ PULGADA","Existencias":"5.00","Línea":NaN},{"Clave":"COPLES4\"","Descripción":"COPLES 4\"","Existencias":"52.00","Línea":NaN},{"Clave":"COST","Descripción":"COSTALES","Existencias":"40,757.00","Línea":1.0},{"Clave":"CPLS3/4","Descripción":"COPLES 3/4","Existencias":"5.00","Línea":NaN},{"Clave":"CV-226","Descripción":"REDUCCION 1-1/2 X1","Existencias":"0.00","Línea":NaN},{"Clave":"CV-262","Descripción":"COPLE DE 3/4","Existencias":"50.00","Línea":NaN},{"Clave":"CV-265","Descripción":"COPLE DE PPR 1-1/2","Existencias":"0.00","Línea":NaN},{"Clave":"CV-562","Descripción":"CODO 90 3/4","Existencias":"0.00","Línea":NaN},{"Clave":"CV-563","Descripción":"CODO 90 1","Existencias":"100.00","Línea":NaN},{"Clave":"CV-762","Descripción":"TEE SENCILLA  3/4","Existencias":"0.00","Línea":NaN},{"Clave":"DISCO","Descripción":"DISCO DE CORTE","Existencias":"44.00","Línea":NaN},{"Clave":"ENCOST","Descripción":"ENCOSTALADA","Existencias":"2,484.00","Línea":1.0},{"Clave":"ESC40","Descripción":"ESTUCO CEMIX 40KG","Existencias":"23.00","Línea":NaN},{"Clave":"ESEXTRAFINO","Descripción":"ESTUCO CEMIX EXTRA FINO","Existencias":"19.00","Línea":NaN},{"Clave":"ESMEZCLA","Descripción":"ESTUCO MEZCLA BRAVA","Existencias":"506.00","Línea":NaN},{"Clave":"ESTERIN","Descripción":"ESTUCO INTERMURO 20KG","Existencias":"363.00","Línea":NaN},{"Clave":"ESTKG","Descripción":"ESTUCO POR KILO","Existencias":"100.50","Línea":NaN},{"Clave":"ESTPER","Descripción":"ESTUCO PERDURA","Existencias":"4.00","Línea":NaN},{"Clave":"FLT","Descripción":"FLETES","Existencias":"93.00","Línea":1.0},{"Clave":"GRAVALT","Descripción":"GRAVA LIGERA TORTON","Existencias":"966.00","Línea":NaN},{"Clave":"HJDRK","Descripción":"HOJAS DUROCK","Existencias":"0.00","Línea":NaN},{"Clave":"HJP2P","Descripción":"HOJA DE PANEL DE 2 PULGADAS","Existencias":"4.00","Línea":1.0},{"Clave":"HJP3P","Descripción":"HOJA DE PANEL DE 3 PULGADAS","Existencias":"62.00","Línea":1.0},{"Clave":"HJP4P","Descripción":"HOJA DE PANEL DE 4 PULGADAS","Existencias":"2.00","Línea":1.0},{"Clave":"KA1010","Descripción":"KILO DE ANILLOS 10 X 10","Existencias":"106,616.56","Línea":3.0},{"Clave":"KA1015","Descripción":"KILO DE ANILLOS 10 X 15","Existencias":"661,272.96","Línea":3.0},{"Clave":"KA1020","Descripción":"KILO DE ANILLOS 10 X 20","Existencias":"454.95","Línea":3.0},{"Clave":"KA1025","Descripción":"KILO DE ANILLOS 10 X 25","Existencias":"79,985,999.80","Línea":3.0},{"Clave":"KA1030","Descripción":"KILO DE ANILLOS 10 X 30","Existencias":"69,695.50","Línea":3.0},{"Clave":"KA1515","Descripción":"KILO DE ANILLOS 15 X 15","Existencias":"9,061.79","Línea":3.0},{"Clave":"KA1520","Descripción":"KILO DE ANILLOS 15 X 20","Existencias":"13,015.10","Línea":3.0},{"Clave":"KA1525","Descripción":"KILO DE ANILLOS 15 X 25","Existencias":"650.23","Línea":3.0},{"Clave":"KA1530","Descripción":"KILO DE ANILLOS 15 X 30","Existencias":"3,292.10","Línea":3.0},{"Clave":"KA2020","Descripción":"KILO DE ANILLOS 20 X 20","Existencias":"95,454.58","Línea":3.0},{"Clave":"KA2025","Descripción":"KILO DE ANILLOS 20 X 25","Existencias":"9,995,816.20","Línea":3.0},{"Clave":"KA2030","Descripción":"KILO DE ANILLOS 20 X 30","Existencias":"546.29","Línea":3.0},{"Clave":"KA2525","Descripción":"KILO DE ANILLOS 25 X 25","Existencias":"1,240.20","Línea":3.0},{"Clave":"KA2530","Descripción":"KILO DE ANILLOS 25 X 30","Existencias":"2,080.40","Línea":3.0},{"Clave":"KA3030","Descripción":"KILO DE ANILLOS 30 X 30","Existencias":"1,744.40","Línea":3.0},{"Clave":"KAESC","Descripción":"KILO DE ANILLOS ESCARPIO COM","Existencias":"3,022.30","Línea":NaN},{"Clave":"KAESCE","Descripción":"KILO DE ANILOS ESCARPIO ESP","Existencias":"619.40","Línea":NaN},{"Clave":"KAESP","Descripción":"KILO DE ANILLOS ESPECIALES ALAMBRON","Existencias":"49,999,949,766.32","Línea":3.0},{"Clave":"KALAMR","Descripción":"KILO DE ALAMBRE RECOCIDO","Existencias":"125,998.69","Línea":3.0},{"Clave":"KALAMRN","Descripción":"KILO DE ALAMBRON","Existencias":"275,599.53","Línea":3.0},{"Clave":"KAT1015","Descripción":"KILO DE ANILLOS DE TRIANGULO 10 X 15","Existencias":"0.00","Línea":3.0},{"Clave":"KAVM","Descripción":"KILO DE ANILLOS DE VARIAS MEDIDAS","Existencias":"4,999,999,997,962.40","Línea":3.0},{"Clave":"KAVSM","Descripción":"KILO DE ANILLOS DE VARILLA S/MEDIDA","Existencias":"1,746.68","Línea":3.0},{"Clave":"LAMALB","Descripción":"LAMINA DE ALBESTO","Existencias":"0.00","Línea":NaN},{"Clave":"LAVCG","Descripción":"LAVADERO COBIJERO GRANITO","Existencias":"7.00","Línea":1.0},{"Clave":"LAVDG","Descripción":"LAVADERO DEPARTAMENTAL GRANITO","Existencias":"10.00","Línea":1.0},{"Clave":"LAVJG","Descripción":"LAVADERO JUMBO GRANITO","Existencias":"11.00","Línea":1.0},{"Clave":"LAVNG","Descripción":"LAVADERO NORMAL GRANITO","Existencias":"0.00","Línea":1.0},{"Clave":"LPL","Descripción":"LIJA PARA PLOMERIA","Existencias":"47.00","Línea":NaN},{"Clave":"MAKILA","Descripción":"KILO DE MAKILA","Existencias":"79,865.70","Línea":NaN},{"Clave":"MANGUERA","Descripción":"MANGUERA POR ROLLO 3/4","Existencias":"960.00","Línea":NaN},{"Clave":"MAQUINA","Descripción":"RENTA Y MANIOBRA DE RETROESBADORA","Existencias":"68.50","Línea":NaN},{"Clave":"MAYAPR","Descripción":"MALLA ELEC. POR ROLLO 10/10","Existencias":"381.50","Línea":3.0},{"Clave":"PEGACEMIX","Descripción":"PEGAZULEJO CEMIX","Existencias":"228.00","Línea":NaN},{"Clave":"PEGADHETEC","Descripción":"ADHEROCK GRIS","Existencias":"5,926.00","Línea":2.0},{"Clave":"PEGMADISON","Descripción":"PEGAZULEJO MADISON","Existencias":"200.00","Línea":NaN},{"Clave":"PGCA","Descripción":"PEGAZULEJO GRIS BASIC","Existencias":"1,449.00","Línea":NaN},{"Clave":"PGXK","Descripción":"PEGAZULEJO POR KILO","Existencias":"82,213,199.00","Línea":2.0},{"Clave":"POLIFLEX1/2","Descripción":"POLIFELX POR ROLLO 1/2","Existencias":"49.00","Línea":NaN},{"Clave":"POLIFLEX3/4","Descripción":"POLIFLEX POR ROLLO 3/4","Existencias":"44.00","Línea":NaN},{"Clave":"PPVC","Descripción":"PEGAMENTO PVC","Existencias":"24.00","Línea":NaN},{"Clave":"PSP","Descripción":"PISO SOBRE PISO","Existencias":"377.00","Línea":2.0},{"Clave":"PSP MADISON","Descripción":"PISO SOBRE PISO MADISON","Existencias":"10.00","Línea":NaN},{"Clave":"REDUCC3/4","Descripción":"REDUCC3/4A1/2","Existencias":"14.00","Línea":NaN},{"Clave":"REG11/4","Descripción":"REGISTRO ANGULO 1 1/4","Existencias":"498.00","Línea":1.0},{"Clave":"REGC11/4","Descripción":"REGISTRO CON COLADERA 1 1/4","Existencias":"43.00","Línea":1.0},{"Clave":"REGCD","Descripción":"REGISTRO COLADO CON COLADERA","Existencias":"3.00","Línea":1.0},{"Clave":"REGCPL","Descripción":"REGISTRO CIEGO DE PLACA","Existencias":"2.00","Línea":1.0},{"Clave":"REGESP","Descripción":"REGISTRO ESPECIAL","Existencias":"0.00","Línea":1.0},{"Clave":"REGPLAC","Descripción":"REGISTROS DE PLACA COLADERA / REJILLA","Existencias":"8.00","Línea":1.0},{"Clave":"REGPMARMOL","Descripción":"REGISTRO POLY MARMOLEADO","Existencias":"0.00","Línea":1.0},{"Clave":"REGPOLI","Descripción":"REGISTRO POLICONCRETO C/ COL","Existencias":"7.00","Línea":1.0},{"Clave":"REGPRF","Descripción":"REGISTRO DE PLACA REFORZADO","Existencias":"0.00","Línea":1.0},{"Clave":"REGSOL","Descripción":"REGISTRO CIEGO COLADO","Existencias":"17.00","Línea":1.0},{"Clave":"REGSP","Descripción":"REGISTRO DE POLYCONCRETO S/COLADERA","Existencias":"9.00","Línea":1.0},{"Clave":"RESIN","Descripción":"RESINA","Existencias":"0.00","Línea":1.0},{"Clave":"ROTOPLAS","Descripción":"TINACO ROTOPLAS","Existencias":"19.00","Línea":NaN},{"Clave":"RSNCK","Descripción":"RESANA CRETO","Existencias":"0.00","Línea":1.0},{"Clave":"RTM","Descripción":"RENTA DE MAQUINA","Existencias":"0.00","Línea":1.0},{"Clave":"SEG","Descripción":"SEGUETAS","Existencias":"151.00","Línea":1.0},{"Clave":"SONOT15","Descripción":"SONOTUBO DE 15 CM","Existencias":"1.00","Línea":1.0},{"Clave":"SONOT20","Descripción":"SONOTUBO DE 20 CM","Existencias":"996.00","Línea":1.0},{"Clave":"SONOT25","Descripción":"SONOTUBO DE 25 CM","Existencias":"0.00","Línea":1.0},{"Clave":"SONOT30","Descripción":"SONOTUBO DE 30 CM","Existencias":"2.00","Línea":1.0},{"Clave":"SONOT35","Descripción":"SONOTUBO DE 35 CM","Existencias":"0.00","Línea":1.0},{"Clave":"TA","Descripción":"TIERRA AMARILLA","Existencias":"351.50","Línea":1.0},{"Clave":"TA70X70","Descripción":"TAPA DE CISTERNA REFORZADA","Existencias":"0.00","Línea":1.0},{"Clave":"TAB 8","Descripción":"TABIQUE #8 LIGERO","Existencias":"7,992,369.00","Línea":NaN},{"Clave":"TABP9","Descripción":"TABIQUE PESADO #9","Existencias":"999,999,987,435.00","Línea":NaN},{"Clave":"TAESP","Descripción":"TAPA DE MEDIDA ESPECIAL","Existencias":"4.00","Línea":1.0},{"Clave":"TAPC4060","Descripción":"TAPA DE CISTERNA DE 40 X 60","Existencias":"10.00","Línea":1.0},{"Clave":"TAPC5050","Descripción":"TAPA DE CISTERNA DE 50 X 50","Existencias":"8.00","Línea":1.0},{"Clave":"TAPC5060","Descripción":"TAPA DE CISTERNA DE 50 X 60","Existencias":"3.00","Línea":1.0},{"Clave":"TAPC6060","Descripción":"TAPA DE CISTERNA DE 60 X 60","Existencias":"0.00","Línea":1.0},{"Clave":"TAQUE","Descripción":"TAQUETES DE PLASTICO","Existencias":"0.00","Línea":NaN},{"Clave":"TARIMAS","Descripción":"TARIMAS","Existencias":"88.00","Línea":NaN},{"Clave":"TBPVC3","Descripción":NaN,"Existencias":"7.00","Línea":NaN},{"Clave":"TEYO","Descripción":"TEYOLOTE","Existencias":"912.00","Línea":4.0},{"Clave":"TUBO","Descripción":"TUBO PVC","Existencias":"43.00","Línea":NaN},{"Clave":"VAR1/2P","Descripción":"VARILLA DE 1/2","Existencias":"4,417.00","Línea":3.0},{"Clave":"VAR1/2TA","Descripción":"VARILLA DE 1/2 PZA HYLSA","Existencias":"445.00","Línea":NaN},{"Clave":"VAR3/8P","Descripción":"VARILLA DE 3/8 HYLSA","Existencias":"655.00","Línea":3.0},{"Clave":"VAR3/8TA","Descripción":"VARILLA DE 3/8 POR PZA. T","Existencias":"5,812.00","Línea":NaN},{"Clave":"YESOK","Descripción":"YESO POR KILO","Existencias":"794.50","Línea":2.0},{"Clave":"ZACCESORIO","Descripción":"GASTO ACCESORIOS PARA CUALQUIER VEHICULO","Existencias":"0.00","Línea":1.0},{"Clave":"ZALIMENTOS","Descripción":"GASTO RELACIONADO CON LOS ALIMENTOS","Existencias":"0.00","Línea":1.0},{"Clave":"ZCAMBIO","Descripción":"DIF POR CAMBIO DE MATERIAL","Existencias":"923.90","Línea":NaN},{"Clave":"ZDEMOLICION","Descripción":"RELACIONADO CON DEMOLICIONES","Existencias":"6.00","Línea":NaN},{"Clave":"ZDIESEL","Descripción":"GASTOS DIESEL","Existencias":"49,630.00","Línea":1.0},{"Clave":"ZEFEC","Descripción":"PAGO EN EFECTIVO","Existencias":"4,871.00","Línea":NaN},{"Clave":"ZELECTRICO","Descripción":"GASTO RELACIONADO A TALLER ELECTRICO","Existencias":"0.00","Línea":1.0},{"Clave":"ZEXTRAS","Descripción":"GASTO RELACIONADO  PAGOS EXTRAORDINARIOS","Existencias":"20.00","Línea":1.0},{"Clave":"ZFLETES","Descripción":"GASTO RELACIONADO CON FLETE TRACTOCAMION","Existencias":"1,000,147.00","Línea":1.0},{"Clave":"ZGASOLINA","Descripción":"GASTOS GASOLINA","Existencias":"4,888.00","Línea":1.0},{"Clave":"ZIMPUESTOS","Descripción":"GASTO RELACIONADO CON LOS IMPUESTOS","Existencias":"1.00","Línea":1.0},{"Clave":"ZLLANTAS","Descripción":"COMPRA DE LLANTAS PARA VEHICULOS","Existencias":"0.00","Línea":1.0},{"Clave":"ZMECANICO","Descripción":"GASTO RELACIONADO A TALLER MECANICO","Existencias":"28.00","Línea":1.0},{"Clave":"ZOFICINA","Descripción":"GASTO RELACIONADO PAGOS PARA OFICINA","Existencias":"984.00","Línea":1.0},{"Clave":"ZPAPELERIA","Descripción":"GASTO RELACIONADO CON PAPELERIA OFICINA","Existencias":"994.00","Línea":1.0},{"Clave":"ZREFACC","Descripción":"GASTOS REFACCIONES CUALQUIER VEHICULO","Existencias":"0.00","Línea":1.0},{"Clave":"ZSEGSOCIAL","Descripción":"GASTO RELACIONADO CON PAGO IMSS","Existencias":"0.00","Línea":1.0},{"Clave":"ZSUELDOS","Descripción":"GASTO RELACIONADO CON LOS SUELDOS","Existencias":"0.00","Línea":1.0},{"Clave":"ZTELEFONIA","Descripción":"GASTOS RELACIONADOS CON LA COMUNICACION","Existencias":"0.00","Línea":1.0},{"Clave":"ZTRANSFER","Descripción":"PAGO EN TRANSFERENCIA","Existencias":"4,995.00","Línea":NaN},{"Clave":"ZVARIOS","Descripción":"GASTOS RELACIONADOS CON GPS","Existencias":"0.00","Línea":NaN}];
+
     const UNITS = [
-      "BULTO", "BOTE", "CUBETA", "LITRO", "GALON", "METRO", "M2", "M3", "PIEZA",
-      "SACO", "KG", "TONELADA", "PAQUETE"
+      "BULTO","BOTE","CUBETA","LITRO","GALON","METRO","M2","M3","PIEZA",
+      "SACO","KG","TONELADA","PAQUETE"
     ];
 
-    const STORAGE_KEY = "captura_unidades_v1";
-    let rows = [];            // filas cargadas desde el CSV
-    let assignments = {};     // { Clave: { UnidadVenta, Comentarios } }
+    const STORAGE_KEY = "captura_unidades_v3";
+    let rows = [];
+    let assignments = {};
 
-    // Util
     const $ = (sel) => document.querySelector(sel);
     const create = (tag, cls) => { const el = document.createElement(tag); if(cls) el.className = cls; return el; };
 
-    // Cargar progreso previo
-    function loadState(){
-      try { assignments = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
-      catch { assignments = {}; }
-    }
-
-    function saveState(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
-    }
+    function loadState(){ try { assignments = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { assignments = {}; } }
+    function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments)); }
 
     function updateProgress(){
-      const assigned = Object.values(assignments).filter(a => a && a.UnidadVenta && a.UnidadVenta.length).length;
+      const assigned = Object.values(assignments).filter(a => a && (a.UnidadVenta || a.OtraUnidad)).length;
       $("#progress").textContent = `${assigned} asignados / ${rows.length} productos`;
     }
 
     function buildUnitSelect(value){
-      const sel = create("select", "border rounded-xl px-2 py-1 bg-white");
+      const sel = create("select","border rounded-xl px-2 py-1 bg-white");
       const opt0 = create("option"); opt0.value = ""; opt0.textContent = "Seleccionar"; sel.appendChild(opt0);
       UNITS.forEach(u => { const o = create("option"); o.value = u; o.textContent = u; sel.appendChild(o); });
       if(value) sel.value = value;
@@ -122,26 +119,39 @@
       });
 
       filtered.forEach(r => {
-        const tr = create("tr", "border-t");
+        const tr = create("tr","border-t");
 
-        const tdClave = create("td", "px-3 py-2 font-medium"); tdClave.textContent = r.Clave || ""; tr.appendChild(tdClave);
-        const tdDesc  = create("td", "px-3 py-2"); tdDesc.textContent = r.Descripción || ""; tr.appendChild(tdDesc);
-        const tdEx    = create("td", "px-3 py-2 text-right tabular-nums"); tdEx.textContent = r.Existencias ?? ""; tr.appendChild(tdEx);
-        const tdLin   = create("td", "px-3 py-2 text-right"); tdLin.textContent = r.Línea ?? ""; tr.appendChild(tdLin);
+        const tdClave = create("td","px-3 py-2 font-medium"); tdClave.textContent = r.Clave || ""; tr.appendChild(tdClave);
+        const tdDesc  = create("td","px-3 py-2"); tdDesc.textContent = r.Descripción || ""; tr.appendChild(tdDesc);
+        const tdEx    = create("td","px-3 py-2 text-right tabular-nums"); tdEx.textContent = r.Existencias ?? ""; tr.appendChild(tdEx);
+        const tdLin   = create("td","px-3 py-2 text-right"); tdLin.textContent = r.Línea ?? ""; tr.appendChild(tdLin);
 
-        const tdUnit  = create("td", "px-3 py-2");
+        const tdUnit  = create("td","px-3 py-2");
         const sel = buildUnitSelect(assignments[r.Clave]?.UnidadVenta || "");
-        sel.addEventListener("change", () => { 
-          assignments[r.Clave] = assignments[r.Clave] || {}; 
-          assignments[r.Clave].UnidadVenta = sel.value; 
-          saveState(); 
+        sel.addEventListener("change", () => {
+          assignments[r.Clave] = assignments[r.Clave] || {};
+          assignments[r.Clave].UnidadVenta = sel.value;
+          saveState();
           updateProgress();
         });
         tdUnit.appendChild(sel);
         tr.appendChild(tdUnit);
 
-        const tdCom = create("td", "px-3 py-2");
-        const inp = create("input", "border rounded-xl px-2 py-1 w-full");
+        const tdOtra = create("td","px-3 py-2");
+        const inpOtra = create("input","border rounded-xl px-2 py-1 w-full");
+        inpOtra.placeholder = "Escribir si no está en la lista";
+        inpOtra.value = assignments[r.Clave]?.OtraUnidad || "";
+        inpOtra.addEventListener("input", () => {
+          assignments[r.Clave] = assignments[r.Clave] || {};
+          assignments[r.Clave].OtraUnidad = inpOtra.value;
+          saveState();
+          updateProgress();
+        });
+        tdOtra.appendChild(inpOtra);
+        tr.appendChild(tdOtra);
+
+        const tdCom = create("td","px-3 py-2");
+        const inp = create("input","border rounded-xl px-2 py-1 w-full");
         inp.placeholder = "Opcional";
         inp.value = assignments[r.Clave]?.Comentarios || "";
         inp.addEventListener("input", () => {
@@ -163,25 +173,21 @@
         header: true,
         skipEmptyLines: true,
         complete: (res) => {
-          rows = res.data.map(r => ({
-            Clave: r["Clave"],
-            Descripción: r["Descripción"],
-            Existencias: r["Existencias"],
-            Línea: r["Línea"],
-          }));
+          rows = res.data.map(r => ({ Clave: r["Clave"], Descripción: r["Descripción"], Existencias: r["Existencias"], Línea: r["Línea"] }));
           renderTable();
         }
       });
     }
 
     function exportCSV(){
-      const lines = ["Clave,UnidadVenta,Comentarios"]; 
+      const lines = ["Clave,UnidadVenta,OtraUnidad,Comentarios"];
       rows.forEach(r => {
         const a = assignments[r.Clave] || {};
         const unidad = a.UnidadVenta ? a.UnidadVenta : "";
-        const com = (a.Comentarios || "").replaceAll('"', '""');
+        const otra = a.OtraUnidad ? a.OtraUnidad : "";
+        const com = (a.Comentarios || "").replaceAll('"','""');
         const csvCom = `"${com}"`;
-        lines.push(`${r.Clave || ""},${unidad},${csvCom}`);
+        lines.push(`${r.Clave || ""},${unidad},${otra},${csvCom}`);
       });
       const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -190,18 +196,20 @@
       URL.revokeObjectURL(url);
     }
 
-    // Events
     window.addEventListener("DOMContentLoaded", () => {
       loadState();
       populateFilterUnit();
-      $("#fileInput").addEventListener("change", (e) => {
+      rows = Array.isArray(EMBED_ROWS) ? EMBED_ROWS : [];
+      renderTable();
+
+      document.querySelector("#fileInput").addEventListener("change", (e) => {
         const file = e.target.files?.[0];
         if(file) handleCSV(file);
       });
-      $("#btnExport").addEventListener("click", exportCSV);
-      $("#btnClear").addEventListener("click", () => { $("#search").value = ""; $("#filterUnit").value = ""; renderTable(); });
-      $("#search").addEventListener("keydown", (e) => { if(e.key === "Enter") renderTable(); });
-      $("#filterUnit").addEventListener("change", renderTable);
+      document.querySelector("#btnExport").addEventListener("click", exportCSV);
+      document.querySelector("#btnClear").addEventListener("click", () => { document.querySelector("#search").value = ""; document.querySelector("#filterUnit").value = ""; renderTable(); });
+      document.querySelector("#search").addEventListener("keydown", (e) => { if(e.key === "Enter") renderTable(); });
+      document.querySelector("#filterUnit").addEventListener("change", renderTable);
     });
   </script>
 </body>
